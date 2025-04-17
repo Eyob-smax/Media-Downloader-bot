@@ -10,19 +10,9 @@ const __dirname = path.dirname(__filename);
 import dotenv from "dotenv";
 dotenv.config();
 
-import { exec } from "child_process";
-
-exec("python3 --version", (error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`Python version: ${stdout}`);
-});
-
 const downloadFolder = path.join(__dirname, "downloads");
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf("7990631057:AAGi9IANHLxExzzCFwRkKG1E0PqpAtRBqX0");
 let urlArray = [];
 let urlArrayVideo = [];
 
