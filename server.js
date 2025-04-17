@@ -7,10 +7,12 @@ import ytdlp from "yt-dlp-exec";
 import { once } from "events";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import dotenv from "dotenv";
+dotenv.config();
 
 const downloadFolder = path.join(__dirname, "downloads");
 
-const bot = new Telegraf("7990631057:AAGi9IANHLxExzzCFwRkKG1E0PqpAtRBqX0");
+const bot = new Telegraf("");
 let urlArray = [];
 let urlArrayVideo = [];
 
