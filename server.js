@@ -22,7 +22,7 @@ exec("python3 --version", (error, stdout, stderr) => {
 
 const downloadFolder = path.join(__dirname, "downloads");
 
-const bot = new Telegraf("");
+const bot = new Telegraf(process.env.BOT_TOKEN);
 let urlArray = [];
 let urlArrayVideo = [];
 
