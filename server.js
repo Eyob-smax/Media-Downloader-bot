@@ -12,7 +12,7 @@ dotenv.config();
 
 const downloadFolder = path.join(__dirname, "downloads");
 
-const bot = new Telegraf("7990631057:AAGi9IANHLxExzzCFwRkKG1E0PqpAtRBqX0");
+const bot = new Telegraf(process.env.BOT_TOKEN);
 let urlArray = [];
 let urlArrayVideo = [];
 
@@ -142,7 +142,7 @@ bot.hears("🎧 Single Audio", (ctx) => {
 
       const userId = ctx.from.id;
       const timestamp = Date.now();
-      const filename = `video_${userId}_${timestamp}.mp3`;
+      const filename = `audio_${userId}_${timestamp}.mp3`;
       const filePath = path.join(downloadFolder, filename);
       ctx.reply(
         "⏳ <b>Downloading audio, please wait...</b>\n\n🔊 Your audio is being processed and will be ready shortly!",
