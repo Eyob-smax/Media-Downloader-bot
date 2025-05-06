@@ -1,7 +1,6 @@
 import { Telegraf, Markup } from "telegraf";
 import fs from "fs";
-import { spawn } from "child_process";
-import path, { format } from "path";
+import path from "path";
 import { fileURLToPath } from "url";
 import ytdlp from "yt-dlp-exec";
 import { once } from "events";
@@ -11,7 +10,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const downloadFolder = path.join(__dirname, "downloads");
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
 let urlArray = [];
 let urlArrayVideo = [];
@@ -140,9 +138,7 @@ bot.hears("🎧 Single Audio", (ctx) => {
         );
       }
 
-      const userId = ctx.from.id;
-      const timestamp = Date.now();
-      const filename = `audio_${userId}_${timestamp}.mp3`;
+      const filename = await getVideoFilename(url, true);
       const filePath = path.join(downloadFolder, filename);
       ctx.reply(
         "⏳ <b>Downloading audio, please wait...</b>\n\n🔊 Your audio is being processed and will be ready shortly!",
@@ -153,7 +149,8 @@ bot.hears("🎧 Single Audio", (ctx) => {
       await ctx.replyWithAudio(
         { source: filePath },
         {
-          caption: `✅ Your audio has been successfully \n\n extracted 🎧. Enjoy premium sound quality from your favorite video 🔊. 🤖 Use this bot anytime to convert videos into crisp MP3s — fast ⚡, free 💸, and unlimited ♾️. 📩 Just share a video link and let the bot do the rest! \n\n give me more urls...`,
+          caption: `<b>${filename}</b>✅ Your audio has been successfully \n\n extracted 🎧. Enjoy premium sound quality from your favorite video 🔊. 🤖 Use this bot anytime to convert videos into crisp MP3s — fast ⚡, free 💸, and unlimited ♾️. 📩 Just share a video link and let the bot do the rest! \n\n give me more urls...`,
+          parse_mode: "HTML",
         }
       );
       fs.unlinkSync(filePath);
@@ -277,12 +274,11 @@ bot.hears("🎞️ Single Video", (ctx) => {
         );
       }
 
-      const userId = ctx.from.id;
-      const timestamp = Date.now();
-      const filename = `video_${userId}_${timestamp}.mp4`;
+      const filename = await getVideoFilename(url);
       const filePath = path.join(downloadFolder, filename);
+
       ctx.reply(
-        "⏳ <b>Please wait, we are downloading your videos!</b>\n\n🔽 Your videos will be ready soon...",
+        "⏳ <b>Please wait, we are downloading your video!</b>\n\n🔽 Your video will be ready soon...",
         {
           parse_mode: "HTML",
         }
@@ -291,10 +287,11 @@ bot.hears("🎞️ Single Video", (ctx) => {
       await ctx.replyWithVideo(
         { source: filePath },
         {
-          caption: `✅ Your video has been successfully
+          caption: `<b>${filename}</b>\n\n✅ Your video has been successfully\n
 📥 downloaded 🎬. Enjoy high-quality playback from your favorite source 🔊. 🤖 Use this bot anytime to convert and download videos — fast ⚡, free 💸, and unlimited ♾️. 📩 Just share a video link and let the bot handle the rest!
 
 `,
+          parse_mode: "HTML",
         }
       );
 
@@ -312,7 +309,7 @@ bot.hears("🎞️ Single Video", (ctx) => {
 
 bot.hears("📂 Multiple Video", (ctx) => {
   ctx.reply(
-    "📥 <b>Please send the video URL you want to download</b>\n\n🔗 You can send multiple URLs by separating them with a <b>space</b>.\n\n🌐 Supported platforms include <i>TikTok, YouTube, Instagram</i>, and more.",
+    "📥 <b>Please send the video URLs you want to download</b>\n\n🔗 You can send multiple URLs by separating them with a <b>space</b>.\n\n🌐 Supported platforms include <i>TikTok, YouTube, Instagram</i>, and more.",
     { parse_mode: "HTML" }
   );
 
@@ -373,18 +370,23 @@ bot.action("submit_video_urls", async (ctx) => {
     );
 
     urlArrayVideo.forEach(async (url, index) => {
-      const userId = ctx.from.id;
-      const timestamp = Date.now();
-      const filename = `video_${userId}_${timestamp}__${index}.mp4`;
+      const filename = await getVideoFilename(url);
       const filePath = path.join(downloadFolder, filename);
+      console.log("filepath", filePath, filename);
       try {
         await dowloadVideo(url, filePath);
         await ctx.replyWithVideo(
           { source: filePath },
           {
-            caption: `Enjoy listening your video_${1}, wait there are ${
-              urlArrayVideo.length - 1 - index
-            } video files`,
+            caption:
+              `<b>🎬 ${filename}</b>\n\n` +
+              `✅ Your video #${
+                index + 1
+              } has been downloaded and is ready to watch!\n\n` +
+              `Enjoy this high-quality content offline — whether it's for entertainment, learning, or saving your favorite moments, we've got you covered.\n\n` +
+              `💡 Tip: Want only the audio next time? This bot also supports direct MP3 extraction for music and podcasts.\n\n` +
+              `🕹️ Feel free to send more video links anytime. The bot is always ready!`,
+            parse_mode: "HTML",
           }
         );
         fs.unlinkSync(filePath);
@@ -416,20 +418,21 @@ bot.action("submit_audio_urls", async (ctx) => {
       "⏳ <b>Please wait, we're downloading the audio!</b>\n\n🔊 Hang tight, the process is almost complete!"
     );
     urlArray.forEach(async (url, index) => {
-      const userId = ctx.from.id;
-      const timestamp = Date.now();
-      const filename = `audio${userId}_${timestamp}__${index}.mp3`;
+      const filename = await getVideoFilename(url, true);
       const filePath = path.join(downloadFolder, filename);
       try {
         await dowloadVideo(url, filePath, true);
         await ctx.replyWithAudio(
           { source: filePath },
           {
-            caption: `Enjoy listening your extracted audio_${1}, wait there are ${
-              urlArray.length - index
-            } audio files`,
+            caption:
+              `<b>🎧${filename}</b>\n\n` +
+              `✅ Enjoy your freshly extracted audio file. Whether it's music, podcasts, or tutorials — it's all yours to listen offline!\n\n` +
+              `🎶 Feel free to send more video links to convert into high-quality MP3s. This bot is fast ⚡, free 💸, and always ready.`,
+            parse_mode: "HTML",
           }
         );
+
         fs.unlinkSync(filePath);
         urlArray = [];
       } catch (err) {
@@ -445,14 +448,6 @@ bot.action("submit_audio_urls", async (ctx) => {
       "❌ <b>Something went wrong! Please try again.</b>\n\n⚡ If the issue persists, please check your input or try a different URL."
     );
   }
-});
-
-bot.on("text", (ctx) => {
-  if (!ctx.message.text.startsWith("http")) {
-    ctx.reply("Please send only links using the bottom buttons only!");
-  }
-
-  ctx.reply("you have to interact using buttons only!");
 });
 
 async function dowloadVideo(url, outputPath, isAudioOnly = false) {
@@ -479,6 +474,24 @@ async function dowloadVideo(url, outputPath, isAudioOnly = false) {
   } catch (err) {
     console.error("Download error:", err.message);
     throw err;
+  }
+}
+
+async function getVideoFilename(url, isAudio = false) {
+  try {
+    const info = await ytdlp(url, {
+      dumpSingleJson: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+    });
+
+    const title = info.title;
+    const ext = isAudio ? "mp3" : "mp4";
+    const filename = `${title}.${ext}`;
+    console.log("Filename:", filename);
+    return filename.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "").trim();
+  } catch (err) {
+    console.error("Failed to get video info:", err.message);
   }
 }
 
