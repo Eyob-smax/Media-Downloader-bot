@@ -447,6 +447,14 @@ bot.action("submit_audio_urls", async (ctx) => {
   }
 });
 
+bot.on("text", (ctx) => {
+  if (!ctx.message.text.startsWith("http")) {
+    ctx.reply("Please send only links using the bottom buttons only!");
+  }
+
+  ctx.reply("you have to interact using buttons only!");
+});
+
 async function dowloadVideo(url, outputPath, isAudioOnly = false) {
   try {
     fs.mkdirSync(downloadFolder, { recursive: true });
