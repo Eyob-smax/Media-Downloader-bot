@@ -287,11 +287,14 @@ bot.hears("🎞️ Single Video", (ctx) => {
           parse_mode: "HTML",
         }
       );
-      await dowloadVideo(url, filePath, false);
-      await ctx.replyWithAudio(
+      await dowloadVideo(url, filePath);
+      await ctx.replyWithVideo(
         { source: filePath },
         {
-          caption: `✅ Your audio has been successfully \n\n extracted 🎧. Enjoy premium sound quality from your favorite video 🔊. 🤖 Use this bot anytime to convert videos into crisp MP3s — fast ⚡, free 💸, and unlimited ♾️. 📩 Just share a video link and let the bot do the rest! \n\ngive me another list of urls...`,
+          caption: `✅ Your video has been successfully
+📥 downloaded 🎬. Enjoy high-quality playback from your favorite source 🔊. 🤖 Use this bot anytime to convert and download videos — fast ⚡, free 💸, and unlimited ♾️. 📩 Just share a video link and let the bot handle the rest!
+
+`,
         }
       );
 
@@ -329,10 +332,14 @@ bot.hears("📂 Multiple Video", (ctx) => {
       `✅ <b>You have entered ${urls.length} URLs.</b>\n\n🎬 <b>Please confirm to start downloading the video(s).</b>`,
       {
         parse_mode: "HTML",
-        reply_markup: Markup.inlineKeyboard([
-          Markup.button.callback("✔️ Submit", "submit_video_urls"),
-          Markup.button.callback("❌ Cancel", "cancel_video"),
-        ]),
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "✔️ Submit", callback_data: "submit_video_urls" },
+              { text: "❌ Cancel", callback_data: "cancel_video" },
+            ],
+          ],
+        },
       }
     );
   });
@@ -371,7 +378,7 @@ bot.action("submit_video_urls", async (ctx) => {
       const filename = `video_${userId}_${timestamp}__${index}.mp4`;
       const filePath = path.join(downloadFolder, filename);
       try {
-        await dowloadVideo(url, filePath, false);
+        await dowloadVideo(url, filePath);
         await ctx.replyWithVideo(
           { source: filePath },
           {
@@ -411,7 +418,7 @@ bot.action("submit_audio_urls", async (ctx) => {
     urlArray.forEach(async (url, index) => {
       const userId = ctx.from.id;
       const timestamp = Date.now();
-      const filename = `video_${userId}_${timestamp}__${index}.mp3`;
+      const filename = `audio${userId}_${timestamp}__${index}.mp3`;
       const filePath = path.join(downloadFolder, filename);
       try {
         await dowloadVideo(url, filePath, true);
@@ -442,9 +449,7 @@ bot.action("submit_audio_urls", async (ctx) => {
 
 async function dowloadVideo(url, outputPath, isAudioOnly = false) {
   try {
-    if (!fs.existsSync(downloadFolder)) {
-      fs.mkdirSync(downloadFolder, { recursive: true });
-    }
+    fs.mkdirSync(downloadFolder, { recursive: true });
 
     const stream = fs.createWriteStream(outputPath);
     const options = isAudioOnly

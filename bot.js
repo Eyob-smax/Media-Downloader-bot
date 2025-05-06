@@ -17,7 +17,6 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("message", data);
   });
 });
-// ✅ Use httpServer instead of app.listen
 httpServer.listen(8000, () => {
   console.log("Express + Socket.IO running on http://localhost:8000");
 });
